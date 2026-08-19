@@ -5,6 +5,7 @@ import ModeSelect from './pages/ModeSelect.jsx'
 import MapSelect from './pages/MapSelect.jsx'
 import QuestSelect from './pages/QuestSelect.jsx'
 import RoutePlanner from './pages/RoutePlanner.jsx'
+import ItemFinder from './pages/ItemFinder.jsx'
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <Route path="/map" element={<MapSelect />} />
           <Route path="/quests" element={<QuestSelect />} />
           <Route path="/planner" element={<RoutePlanner />} />
+          <Route path="/find-item" element={<ItemFinder />} />
         </Routes>
       </div>
     </AppStateProvider>

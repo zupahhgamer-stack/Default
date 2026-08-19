@@ -732,6 +732,129 @@ input[type='range']::-moz-range-thumb {
   }
 }
 
+/* --- Item / key finder --- */
+
+.finder-screen {
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 40px 40px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.finder-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  min-height: 0;
+}
+
+.finder-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.search-input {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.item-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.item-result-row {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-dim);
+  color: var(--text);
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.item-result-row:hover {
+  border-color: var(--accent-dim);
+}
+
+.item-result-row.selected {
+  border-color: var(--accent);
+  background: var(--bg-panel-hover);
+  color: var(--accent);
+}
+
+.item-result-row .count {
+  font-size: 10px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.finder-map-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+}
+
+.map-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.map-tab {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.map-tab:hover {
+  border-color: var(--accent-dim);
+}
+
+.map-tab.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--bg-panel-hover);
+}
+
+.finder-map-svg {
+  flex: 1;
+  min-height: 0;
+  border: none;
+}
+
 .empty-state {
   display: flex;
   align-items: center;

@@ -6,7 +6,10 @@ your browser's localStorage.
 
 **Flow:** Main Menu → Mode (PMC/Scav) → Map (all 10 maps) → Quest objectives
 → Route planner (SVG node graph, A* pathfinding, shortest↔safest slider,
-multi-stop quest routing, key-locked extract warnings).
+multi-stop quest routing, key-locked extract warnings). Main Menu also has a
+standalone **Find Item / Key** screen — search any key, see every map it
+spawns on, plotted at its real in-game position, independent of the mode/map
+flow above.
 
 ## Setup
 
@@ -20,9 +23,10 @@ to your second monitor and leave it open while you raid. `npm run build` /
 `npm run preview` work as usual if you want a static build.
 
 No API key, no account, no server component. Requires internet access only
-to pull live quest/coordinate data from `api.tarkov.dev`; everything else
-works fully offline. Run `npm run sync-tarkov-data` any time to check
-whether that API is reachable from your terminal, outside the browser.
+to pull live quest/coordinate/loot data from `api.tarkov.dev`; everything
+else works fully offline. Run `npm run sync-tarkov-data` or
+`npm run sync-loot-data` any time to check whether that API is reachable
+from your terminal, outside the browser.
 
 ## Quest data
 
@@ -102,22 +106,22 @@ location data, not just a hand-picked few** — the earlier draft of this app
 could only route through the dozen or so quests I'd manually pinned by
 hand; this pulls the real thing.
 
-**Currently offline:** `api.tarkov.dev` was returning a hard backend
-outage (`"GraphQL server unavailable"`) for this app's entire development —
-confirmed as a real outage, not a proxy artifact, since `assets.tarkov.dev`
-(the map art CDN) and `tarkov.dev` itself both responded fine the whole
-time. So while the query is written and validated (offline, against the
-`tarkov-api` project's own schema SDL — see `npm run sync-tarkov-data`), I
-have not been able to see it return a real `{x,y,z}` and watch a marker land
-in the right spot. Until the API recovers, the app runs exactly like the
-original hand-built version: the HUD shows `GPS: approximate graph`, and
-quest waypoints fall back to the old hand-picked `mapNodeHint` system
-(still present for the bundled fallback quests — see below). The moment the
-API responds — automatically, next time you open the quest-select screen,
-or via `npm run sync-tarkov-data` to check from the terminal — real
-coordinates take over with no config change. If you hit a marker that's
-visibly off, `worldToPercent.js` and `mapCalibration.js` are the only two
-files that would need correcting.
+**Currently offline (GraphQL), but the transform is now visually verified:**
+`api.tarkov.dev`'s GraphQL endpoint was down (`"GraphQL server unavailable"`)
+for this app's entire development — confirmed as a real backend outage, not
+a proxy artifact, since `assets.tarkov.dev` (the map art CDN) responded fine
+the whole time. Quest routing (this section) still can't see it return a
+real `{x,y,z}` end to end, so the route planner's HUD shows
+`GPS: approximate graph` and quest waypoints still fall back to the old
+hand-picked `mapNodeHint` system. **But** the same `worldToPercent.js`
+transform is also used by the Find Item / Key screen (below), which sources
+from tarkov.dev's *separate* static JSON mirror — that one turned out to be
+up the whole time, on different infrastructure. Watching real key markers
+land in visually correct, sane spots across multiple maps there is about as
+close to end-to-end verification of the transform math as this app is going
+to get until the GraphQL endpoint itself recovers. The moment it does,
+automatically or via `npm run sync-tarkov-data` — real coordinates take
+over for quest routing too, no config change.
 
 ### Refining hand-built nodes/edges
 
@@ -171,6 +175,49 @@ in.
 - Click any spawn or extract marker directly on the map to set it, or use
   the sidebar dropdowns.
 
+## Find Item / Key
+
+A standalone screen (Main Menu → Find Item / Key) for a specific workflow:
+you're on one map, a quest needs a key that spawns on a *different* map, and
+you want to know where before you commit to a raid. Search a key name, pick
+a map tab, see every real spawn point plotted on that map's actual art.
+
+Data flow (`src/api/lootApi.js`), same layered pattern as quest data:
+
+1. **Live** — `items(types: [keys])` + `maps { lootLoose }` via GraphQL.
+   Deliberately scoped to just keys (not all ~5,300 items) so this stays a
+   small, cheap request safe to run on every visit once the API's back.
+2. **Bundled snapshot** (`src/data/lootFallback.json`) — used today, since
+   GraphQL is down. This is a genuinely different situation from the quest
+   fallback: tarkov.dev also publishes a static JSON mirror
+   (`json.tarkov.dev`) on separate infrastructure that **stayed up** through
+   the whole GraphQL outage, with real, current loose-loot positions (file
+   timestamps confirmed same-day as this was built). The catch: it's
+   `items.json` + `maps.json`, **~26MB combined** — completely wrong to fetch
+   from a browser on every page load, healthy API or not. So
+   `npm run sync-loot-data` pulls it once, filters to key-type items with a
+   resolvable position, and bakes the ~120KB result to
+   `src/data/lootFallback.json`. Re-run it any time for a fresher snapshot;
+   it's just a snapshot either way, not a live subscription.
+3. Whichever tier resolved a name still shows tarkov.dev's translation-service
+   placeholder pattern as a title-cased slug (e.g. `factory-emergency-exit-key`
+   → "Factory Emergency Exit Key") when the real localized name isn't
+   available — same `isPlaceholderName` fallback used elsewhere, see "Real
+   coordinates" above.
+
+Positions reuse the exact same `worldToPercent.js` transform as quest
+routing — this is in fact the only place in the app where that transform has
+been watched landing markers in visibly correct spots on real map art,
+since it's the only live-reachable coordinate source right now (see the
+"Currently offline" note above).
+
+**On TarkovTracker.io**, in case you're wondering why this doesn't also
+pull from there: it isn't an independent data source. It consumes
+`json.tarkov.dev` itself and layers personal, login-based progress tracking
+(squad sync, completion state) on top — nothing that adds quest/map data
+RAIDPLAN doesn't already have, and the login model doesn't fit this app's
+no-account, everything-local design.
+
 ## What's stored locally
 
 Everything lives under the `raidplan.*` prefix in `localStorage`: selected
@@ -182,27 +229,37 @@ leaves your machine — there's no backend and no analytics.
 ```
 src/
   api/tarkovApi.js         live GraphQL fetch (quests + real map/spawn/extract/objective positions) + cache + fallback
+  api/lootApi.js           live GraphQL fetch (key spawn positions) + cache + bundled fallback
   data/maps/*.js           per-map hand-built node graphs — walkable edges, danger, key locks
   data/mapCalibration.js   one-time-pulled per-map coordinate transform (world -> percent)
   data/questsFallback.js   offline quest snapshot used when the API is unreachable
+  data/lootFallback.json   offline key-location snapshot, built by `npm run sync-loot-data`
   utils/astar.js           pathfinding
   utils/worldToPercent.js  world coordinate -> map percent transform
   context/AppStateContext.jsx   localStorage-backed app state
-  pages/                   Main Menu, Mode/Map/Quest select, Route Planner
-  components/MapView.jsx   SVG node graph + route rendering
+  pages/                   Main Menu, Mode/Map/Quest select, Route Planner, Item Finder
+  components/MapView.jsx   SVG node graph + route + ad-hoc marker rendering
 public/maps/*.svg          real map art, pulled one-time from assets.tarkov.dev (CC BY-NC-SA 4.0)
 scripts/sync-tarkov-data.mjs   run with `npm run sync-tarkov-data` to check the live API from a terminal
+scripts/sync-loot-data.mjs     run with `npm run sync-loot-data` to rebuild data/lootFallback.json
 ```
 
 ## Known limitations
 
 - Walkable connectivity (which nodes can reach which) is still hand-built
   and approximate — the API has no concept of a walkable path, only points.
-- Real coordinates are implemented and offline-validated against the
-  schema, but unverified end-to-end against a live response — see "Real
-  coordinates" above for exactly what that means and how to tell (`GPS:`
-  status in the route planner's top bar).
+- Quest-routing coordinates are implemented and offline-validated against
+  the schema, but not yet watched landing correctly from a live GraphQL
+  response — see "Real coordinates" above for exactly what that means and
+  how to tell (`GPS:` status in the route planner's top bar). The same
+  transform *has* been visually verified via the Find Item / Key screen's
+  REST-mirror data path.
 - Only 10 base maps are modeled; map variants (e.g. Factory day/night) share
   the same graph.
 - Real map art is licensed CC BY-NC-SA 4.0 (non-commercial) — fine for this
   personal tool, don't repurpose it commercially.
+- Find Item / Key currently indexes keys only (not all ~5,300 items) — a
+  deliberate scope/payload-size call, see "Find Item / Key" above. Item
+  names may show as title-cased slugs instead of official capitalization
+  until tarkov.dev's translation service recovers (self-corrects
+  automatically, see `isPlaceholderName`).

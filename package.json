@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "sync-tarkov-data": "node scripts/sync-tarkov-data.mjs"
+    "sync-tarkov-data": "node scripts/sync-tarkov-data.mjs",
+    "sync-loot-data": "node scripts/sync-loot-data.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

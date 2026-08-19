@@ -9,7 +9,7 @@ function px(map, x, y) {
   return [(x / 100) * vw, (y / 100) * vh]
 }
 
-export default function MapView({ map, spawnId, extractId, route, onNodeClick }) {
+export default function MapView({ map, spawnId, extractId, route, onNodeClick, markers }) {
   const [, , vw, vh] = map.viewBox.split(' ').map(Number)
   const nodesById = new Map(map.nodes.map((n) => [n.id, n]))
 
@@ -80,6 +80,33 @@ export default function MapView({ map, spawnId, extractId, route, onNodeClick })
             </g>
           )
         })}
+
+      {/* ad-hoc markers, e.g. item/key spawn points from the loot finder —
+          a distinct diamond shape so they read as "found item" rather than
+          graph nodes you can route through */}
+      {markers?.map((m, i) => {
+        const [x, y] = px(map, m.x, m.y)
+        const s = 7
+        return (
+          <g key={`marker-${i}`}>
+            <rect
+              x={x - s}
+              y={y - s}
+              width={s * 2}
+              height={s * 2}
+              transform={`rotate(45 ${x} ${y})`}
+              fill="var(--safe)"
+              stroke="var(--bg)"
+              strokeWidth={1.5}
+            />
+            {m.label && (
+              <text x={x} y={y + s + 12} textAnchor="middle" className="node-label">
+                {m.label}
+              </text>
+            )}
+          </g>
+        )
+      })}
 
       {/* nodes */}
       {map.nodes.map((n) => {

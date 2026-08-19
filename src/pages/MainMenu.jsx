@@ -25,6 +25,9 @@ export default function MainMenu() {
         >
           Continue{mode ? ` (${mode.toUpperCase()}${mapId ? ` / ${mapId}` : ''})` : ''} <span className="arrow">&raquo;</span>
         </Link>
+        <Link className="menu-btn" to="/find-item">
+          Find Item / Key <span className="arrow">&raquo;</span>
+        </Link>
       </nav>
       <footer>No telemetry &middot; Local-only &middot; Data cached in your browser</footer>
     </div>
