@@ -1,0 +1,35 @@
+import { n, e } from './_schema.js'
+
+export default {
+  id: 'factory',
+  name: 'Factory',
+  viewBox: '0 0 1000 700',
+  image: '/maps/factory.jpg',
+  nodes: [
+    n('fac_spawn_a', 'South Spawn', 'spawn', 30, 80, 3, 'pmc'),
+    n('fac_spawn_b', 'North Spawn', 'spawn', 70, 15, 3, 'pmc'),
+    n('fac_spawn_scav', 'Scav Spawn', 'spawn', 50, 50, 2, 'scav'),
+    n('fac_office', 'Office Building', 'landmark', 45, 45, 6, 'shared'),
+    n('fac_boiler', 'Boiler Rooms', 'landmark', 60, 60, 7, 'shared'),
+    n('fac_forklift', 'Forklift Parking', 'landmark', 35, 35, 5, 'shared'),
+    n('fac_courtyard', 'Central Courtyard', 'landmark', 50, 50, 8, 'shared'),
+    n('fac_ext_gate3', 'Gate 3', 'extract', 15, 85, 2, 'pmc', null),
+    n('fac_ext_gate0', 'Gate 0', 'extract', 85, 12, 3, 'pmc', 'Factory Exit Key'),
+    n('fac_ext_cellars', 'Cellars', 'extract', 55, 70, 4, 'scav', null),
+    n('fac_ext_brokenfence', 'Broken Fence', 'extract', 20, 20, 3, 'scav', null),
+  ],
+  edges: [
+    e('fac_spawn_a', 'fac_forklift', 5),
+    e('fac_spawn_a', 'fac_ext_gate3', 4),
+    e('fac_forklift', 'fac_office', 4),
+    e('fac_office', 'fac_courtyard', 3),
+    e('fac_courtyard', 'fac_boiler', 3),
+    e('fac_boiler', 'fac_ext_cellars', 4),
+    e('fac_office', 'fac_ext_brokenfence', 6),
+    e('fac_spawn_b', 'fac_ext_gate0', 4),
+    e('fac_spawn_b', 'fac_courtyard', 6),
+    e('fac_spawn_scav', 'fac_courtyard', 3),
+    e('fac_spawn_scav', 'fac_boiler', 4),
+    e('fac_forklift', 'fac_ext_brokenfence', 3),
+  ],
+}

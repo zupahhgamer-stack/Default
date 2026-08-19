@@ -1,0 +1,36 @@
+import { n, e } from './_schema.js'
+
+export default {
+  id: 'streets',
+  name: 'Streets of Tarkov',
+  viewBox: '0 0 1000 700',
+  image: '/maps/streets.jpg',
+  nodes: [
+    n('str_spawn_east', 'Factory District Spawn', 'spawn', 80, 60, 3, 'pmc'),
+    n('str_spawn_west', 'Klimov St Spawn', 'spawn', 15, 45, 3, 'pmc'),
+    n('str_spawn_scav', 'Scav Courtyard Spawn', 'spawn', 50, 75, 2, 'scav'),
+    n('str_concordia', 'Concordia Mall', 'landmark', 45, 40, 7, 'shared'),
+    n('str_chekpoint', 'Chek Point Mall', 'landmark', 60, 30, 6, 'shared'),
+    n('str_primorsky', 'Primorsky Ave', 'landmark', 35, 55, 5, 'shared'),
+    n('str_clinic', 'Clinic', 'landmark', 55, 20, 8, 'shared'),
+    n('str_ext_klimov', 'Klimov Descent', 'extract', 10, 30, 3, 'pmc', 'Zip-line Carabiner'),
+    n('str_ext_yard', 'Yard Extract', 'extract', 85, 75, 2, 'pmc', null),
+    n('str_ext_e7gate', 'E7 Gate', 'extract', 90, 40, 3, 'pmc', null),
+    n('str_ext_sewer', 'Sewer Extract', 'extract', 30, 75, 4, 'scav', 'Sewer Grate Key'),
+    n('str_ext_crash', 'Crash Site', 'extract', 60, 8, 5, 'scav', null),
+  ],
+  edges: [
+    e('str_spawn_west', 'str_primorsky', 5),
+    e('str_primorsky', 'str_concordia', 5),
+    e('str_concordia', 'str_chekpoint', 4),
+    e('str_chekpoint', 'str_clinic', 4),
+    e('str_clinic', 'str_ext_crash', 4),
+    e('str_spawn_east', 'str_chekpoint', 6),
+    e('str_spawn_east', 'str_ext_yard', 4),
+    e('str_spawn_east', 'str_ext_e7gate', 5),
+    e('str_primorsky', 'str_ext_klimov', 5),
+    e('str_primorsky', 'str_ext_sewer', 6),
+    e('str_spawn_scav', 'str_ext_sewer', 3),
+    e('str_spawn_scav', 'str_concordia', 5),
+  ],
+}

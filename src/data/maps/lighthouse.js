@@ -1,0 +1,36 @@
+import { n, e } from './_schema.js'
+
+export default {
+  id: 'lighthouse',
+  name: 'Lighthouse',
+  viewBox: '0 0 1000 700',
+  image: '/maps/lighthouse.jpg',
+  nodes: [
+    n('lig_spawn_south', 'South Road Spawn', 'spawn', 50, 90, 2, 'pmc'),
+    n('lig_spawn_tunnel', 'Tunnel Spawn', 'spawn', 25, 60, 3, 'pmc'),
+    n('lig_spawn_scav', 'Scav Chalet Spawn', 'spawn', 65, 30, 2, 'scav'),
+    n('lig_chalet', 'Chalet', 'landmark', 60, 35, 6, 'shared'),
+    n('lig_watertreat', 'Water Treatment Plant', 'landmark', 40, 45, 5, 'shared'),
+    n('lig_island', 'Rogue Island', 'landmark', 75, 15, 9, 'shared'),
+    n('lig_bridge', 'Bridge', 'landmark', 45, 65, 4, 'shared'),
+    n('lig_ext_hydro', 'Hydro Bunker (Rogue Checkpoint)', 'extract', 80, 10, 7, 'pmc', 'Rogue Ceasefire (Quest)'),
+    n('lig_ext_northcp', 'Northern Checkpoint', 'extract', 55, 5, 3, 'pmc', null),
+    n('lig_ext_southroad', 'Southern Road', 'extract', 45, 95, 2, 'pmc', null),
+    n('lig_ext_tunnel', 'Coastal Tunnel', 'extract', 15, 55, 3, 'scav', null),
+    n('lig_ext_lighthousepier', 'Lighthouse Pier', 'extract', 90, 25, 5, 'scav', null),
+  ],
+  edges: [
+    e('lig_spawn_south', 'lig_bridge', 5),
+    e('lig_bridge', 'lig_watertreat', 4),
+    e('lig_watertreat', 'lig_spawn_tunnel', 4),
+    e('lig_spawn_tunnel', 'lig_ext_tunnel', 3),
+    e('lig_watertreat', 'lig_chalet', 6),
+    e('lig_chalet', 'lig_spawn_scav', 2),
+    e('lig_chalet', 'lig_island', 7),
+    e('lig_island', 'lig_ext_hydro', 3),
+    e('lig_island', 'lig_ext_lighthousepier', 5),
+    e('lig_chalet', 'lig_ext_northcp', 6),
+    e('lig_spawn_south', 'lig_ext_southroad', 3),
+    e('lig_bridge', 'lig_ext_southroad', 6),
+  ],
+}

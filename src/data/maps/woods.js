@@ -1,0 +1,38 @@
+import { n, e } from './_schema.js'
+
+export default {
+  id: 'woods',
+  name: 'Woods',
+  viewBox: '0 0 1000 700',
+  image: '/maps/woods.jpg',
+  nodes: [
+    n('woo_spawn_south', 'South Spawn', 'spawn', 40, 85, 2, 'pmc'),
+    n('woo_spawn_north', 'North Spawn', 'spawn', 55, 10, 2, 'pmc'),
+    n('woo_spawn_scav', 'Scav House Spawn', 'spawn', 20, 50, 2, 'scav'),
+    n('woo_sawmill', 'Sawmill', 'landmark', 50, 45, 7, 'shared'),
+    n('woo_lumbermill', 'Lumber Mill', 'landmark', 65, 55, 6, 'shared'),
+    n('woo_sunken', 'Sunken Village', 'landmark', 30, 65, 5, 'shared'),
+    n('woo_blockpost', 'Scav Blockpost', 'landmark', 70, 30, 8, 'shared'),
+    n('woo_ext_ruaf', 'RUAF Gate', 'extract', 60, 5, 2, 'pmc', null),
+    n('woo_ext_outskirts', 'Outskirts', 'extract', 15, 90, 2, 'pmc', null),
+    n('woo_ext_mountain', 'Mountain Stashes', 'extract', 80, 75, 4, 'pmc', null),
+    n('woo_ext_un', 'UN Roadblock', 'extract', 90, 40, 4, 'pmc', 'UN Cargo Manifest'),
+    n('woo_ext_scavhouse', 'Scav House', 'extract', 10, 45, 2, 'scav', null),
+    n('woo_ext_factorygate', 'Factory Gate', 'extract', 45, 55, 5, 'scav', null),
+  ],
+  edges: [
+    e('woo_spawn_south', 'woo_sunken', 5),
+    e('woo_spawn_south', 'woo_ext_outskirts', 6),
+    e('woo_sunken', 'woo_sawmill', 6),
+    e('woo_sawmill', 'woo_lumbermill', 4),
+    e('woo_sawmill', 'woo_ext_factorygate', 3),
+    e('woo_lumbermill', 'woo_ext_mountain', 6),
+    e('woo_lumbermill', 'woo_blockpost', 5),
+    e('woo_blockpost', 'woo_ext_un', 6),
+    e('woo_blockpost', 'woo_spawn_north', 6),
+    e('woo_spawn_north', 'woo_ext_ruaf', 3),
+    e('woo_spawn_scav', 'woo_ext_scavhouse', 3),
+    e('woo_spawn_scav', 'woo_sunken', 5),
+    e('woo_sunken', 'woo_ext_scavhouse', 4),
+  ],
+}
