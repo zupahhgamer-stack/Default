@@ -4,7 +4,7 @@ export default {
   id: 'lighthouse',
   name: 'Lighthouse',
   viewBox: '0 0 1000 700',
-  image: '/maps/lighthouse.jpg',
+  image: '/maps/lighthouse.svg',
   nodes: [
     n('lig_spawn_south', 'South Road Spawn', 'spawn', 50, 90, 2, 'pmc'),
     n('lig_spawn_tunnel', 'Tunnel Spawn', 'spawn', 25, 60, 3, 'pmc'),

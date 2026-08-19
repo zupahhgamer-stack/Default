@@ -4,7 +4,7 @@ export default {
   id: 'factory',
   name: 'Factory',
   viewBox: '0 0 1000 700',
-  image: '/maps/factory.jpg',
+  image: '/maps/factory.svg',
   nodes: [
     n('fac_spawn_a', 'South Spawn', 'spawn', 30, 80, 3, 'pmc'),
     n('fac_spawn_b', 'North Spawn', 'spawn', 70, 15, 3, 'pmc'),

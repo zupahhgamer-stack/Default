@@ -4,7 +4,7 @@ export default {
   id: 'shoreline',
   name: 'Shoreline',
   viewBox: '0 0 1000 700',
-  image: '/maps/shoreline.jpg',
+  image: '/maps/shoreline.svg',
   nodes: [
     n('sho_spawn_east', 'East Road Spawn', 'spawn', 85, 55, 2, 'pmc'),
     n('sho_spawn_west', 'Village Spawn', 'spawn', 15, 40, 2, 'pmc'),

@@ -4,7 +4,7 @@ export default {
   id: 'streets',
   name: 'Streets of Tarkov',
   viewBox: '0 0 1000 700',
-  image: '/maps/streets.jpg',
+  image: '/maps/streets.svg',
   nodes: [
     n('str_spawn_east', 'Factory District Spawn', 'spawn', 80, 60, 3, 'pmc'),
     n('str_spawn_west', 'Klimov St Spawn', 'spawn', 15, 45, 3, 'pmc'),

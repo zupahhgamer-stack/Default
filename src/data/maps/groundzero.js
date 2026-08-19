@@ -4,7 +4,7 @@ export default {
   id: 'groundzero',
   name: 'Ground Zero',
   viewBox: '0 0 1000 700',
-  image: '/maps/groundzero.jpg',
+  image: '/maps/groundzero.svg',
   nodes: [
     n('gz_spawn_south', 'Cordon Crossing Spawn', 'spawn', 50, 90, 2, 'pmc'),
     n('gz_spawn_scav', 'Scav Yotota Spawn', 'spawn', 25, 60, 2, 'scav'),

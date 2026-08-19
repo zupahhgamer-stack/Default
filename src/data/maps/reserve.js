@@ -4,7 +4,7 @@ export default {
   id: 'reserve',
   name: 'Reserve',
   viewBox: '0 0 1000 700',
-  image: '/maps/reserve.jpg',
+  image: '/maps/reserve.svg',
   nodes: [
     n('res_spawn_west', 'West Treeline Spawn', 'spawn', 15, 45, 2, 'pmc'),
     n('res_spawn_east', 'East Treeline Spawn', 'spawn', 85, 45, 2, 'pmc'),

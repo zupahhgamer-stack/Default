@@ -4,7 +4,7 @@ export default {
   id: 'lab',
   name: 'The Lab',
   viewBox: '0 0 1000 700',
-  image: '/maps/lab.jpg',
+  image: '/maps/lab.svg',
   nodes: [
     n('lab_spawn', 'Lab Entrance Spawn', 'spawn', 50, 90, 3, 'pmc', 'Labs Access Keycard'),
     n('lab_testchamber', 'Test Chamber', 'landmark', 50, 55, 7, 'shared'),

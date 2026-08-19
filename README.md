@@ -20,8 +20,9 @@ to your second monitor and leave it open while you raid. `npm run build` /
 `npm run preview` work as usual if you want a static build.
 
 No API key, no account, no server component. Requires internet access only
-to pull live quest data from `api.tarkov.dev`; everything else works fully
-offline.
+to pull live quest/coordinate data from `api.tarkov.dev`; everything else
+works fully offline. Run `npm run sync-tarkov-data` any time to check
+whether that API is reachable from your terminal, outside the browser.
 
 ## Quest data
 
@@ -41,67 +42,116 @@ visit (or a Refresh click) replaces it automatically — nothing to configure.
 
 A few notes on the live integration (`src/api/tarkovApi.js`):
 
-- Query pulls `tasks(lang: en)` with `trader`, `minPlayerLevel`,
-  `kappaRequired`, `maps`, `objectives` (including `TaskObjectiveItem`
-  required items/counts/FIR), and `neededKeys`.
-- The tarkov.dev API does **not** expose 2D top-down coordinates for map
-  extracts/landmarks (only 3D world-space positions for some entities like
-  boss spawns, and no public map background images) — see "Map data" below
-  for how RAIDPLAN handles that instead.
-- Quest objectives from the live API aren't automatically pinned to a spot
-  on our hand-built node graphs (there's no shared ID space between
-  tarkov.dev's objective locations and our map nodes). Every live-fetched
-  quest still shows its full "what to bring" list in the sidebar; only the
-  bundled fallback quests currently carry a hand-picked `mapNodeHint` that
-  plots them as a numbered waypoint on the SVG map. See "Adding quest
-  waypoints" below to extend this.
+- One query pulls `tasks(lang: en)` (trader, min level, kappa flag,
+  objectives with required items/counts/FIR, per-objective `requiredKeys`)
+  **and** `maps` (real spawn/extract world positions) together — see
+  "Real coordinates" below for how the two combine.
+- Every live-fetched quest shows its full "what to bring" list in the
+  sidebar regardless of whether it has a map position.
 
-## Map data — hand-built, approximate
+## Map data — real art, real coordinates where the API has them
 
-Since the public API doesn't expose extract/landmark coordinates, each map's
-node graph (`src/data/maps/*.js`) was **hand-built as a starting skeleton**:
-real extract names, plausible relative distances, and danger ratings I
-assigned based on general knowledge of PMC/boss traffic on each map. Node
-`x`/`y` are percentages (0–100) of the map's SVG `viewBox`, laid out to
-loosely resemble each map's real shape — **they are not measured against
-actual map imagery and should be treated as approximate.**
+Earlier drafts of this README said the tarkov.dev API doesn't expose map
+coordinates or imagery. That was wrong — I hadn't checked deeply enough
+before the API went down partway through building this. It does, via a
+`maps` query most consumers don't reach for: `spawns { position }`,
+`extracts { position }`, and per-objective `zones { position }`, all in raw
+in-game world coordinates (Unity world space: `x`/`z` = ground plane, `y` =
+height). Two things it genuinely doesn't give you: a background image (the
+API is data-only), and any notion of which points are walkably connected to
+which — Tarkov interiors have walls a straight line will happily cut
+through, so "point A" and "point B" existing doesn't mean a raw line
+between them is a route. Both of those still needed solving outside the API:
 
-### Refining coordinates
+- **Map art** (`public/maps/*.svg`) — real per-map SVGs, pulled one-time
+  from tarkov.dev's own asset CDN (`assets.tarkov.dev/maps/svg/*.svg`),
+  the same artwork their own site renders. © the-hideout, **CC BY-NC-SA
+  4.0** (non-commercial, share-alike) — fine for this local personal tool,
+  but don't redistribute these files commercially. Source:
+  [tarkov-dev-svg-maps](https://github.com/the-hideout/tarkov-dev-svg-maps).
+- **Walkable connectivity** (`src/data/maps/*.js` edges) — still hand-built,
+  because the API has no concept of it. Real extract/spawn/landmark names,
+  plausible relative distances, and danger ratings I assigned from general
+  knowledge of PMC/boss traffic per map.
 
-1. Find a real top-down map image for the map you want to fix (community
-   wikis have these) and, optionally, drop it at `public/maps/<mapId>.jpg`
-   (e.g. `public/maps/customs.jpg`) — each map object already has an
-   `image` field pointing there. If the file exists it renders under the
-   node graph at 55% opacity as a visual reference/backdrop; if it's
-   missing, the app just skips it silently, no error.
-2. Open `src/data/maps/<mapId>.js`. Each node is:
+### Real coordinates (the part that needed the most care)
+
+`src/data/mapCalibration.js` holds, per map, the exact affine transform +
+rotation + bounds tarkov.dev's own frontend uses to turn a raw world
+position into a 2D map point — pulled one-time from their MIT-licensed
+frontend repo (`the-hideout/tarkov-dev`'s `src/data/maps.json`), not
+guessed. `src/utils/worldToPercent.js` replicates their Leaflet CRS math
+(reverse-engineered from their `src/pages/map/index.jsx`) to convert any
+`{x,y,z}` into the same 0–100 percent space our hand-built nodes already
+use. It's sanity-checked against a real sample position (a Terminal spawn
+point) in that file's development history — I don't have a live API
+connection to verify pixel-for-pixel placement end to end (see the
+"currently offline" note below), but the math is transcribed from their
+source, not invented, and the sample check lands in a sane, tightly
+clustered spot rather than garbage coordinates.
+
+Where this actually shows up: **any selected quest objective with a real
+zone position on the current map gets inserted into the route graph at that
+exact spot** (see `buildEffectiveMap` in `src/pages/RoutePlanner.jsx`),
+connected to the nearest hand-built node by a straight edge (since, again,
+the API gives a point, not a path to it) — scaled down so it's roughly
+consistent with the graph's other hand-tuned distances. This node shows a
+`GPS` badge in the waypoint list so you can tell it apart from a hand-picked
+one. **This is what makes multi-stop routing work for any quest with
+location data, not just a hand-picked few** — the earlier draft of this app
+could only route through the dozen or so quests I'd manually pinned by
+hand; this pulls the real thing.
+
+**Currently offline:** `api.tarkov.dev` was returning a hard backend
+outage (`"GraphQL server unavailable"`) for this app's entire development —
+confirmed as a real outage, not a proxy artifact, since `assets.tarkov.dev`
+(the map art CDN) and `tarkov.dev` itself both responded fine the whole
+time. So while the query is written and validated (offline, against the
+`tarkov-api` project's own schema SDL — see `npm run sync-tarkov-data`), I
+have not been able to see it return a real `{x,y,z}` and watch a marker land
+in the right spot. Until the API recovers, the app runs exactly like the
+original hand-built version: the HUD shows `GPS: approximate graph`, and
+quest waypoints fall back to the old hand-picked `mapNodeHint` system
+(still present for the bundled fallback quests — see below). The moment the
+API responds — automatically, next time you open the quest-select screen,
+or via `npm run sync-tarkov-data` to check from the terminal — real
+coordinates take over with no config change. If you hit a marker that's
+visibly off, `worldToPercent.js` and `mapCalibration.js` are the only two
+files that would need correcting.
+
+### Refining hand-built nodes/edges
+
+1. Open `src/data/maps/<mapId>.js`. Each node is:
    ```js
    n('cust_ext_crossroads', 'Crossroads', 'extract', 8, 62, 1, 'pmc', null)
    //  id                    name          type      x   y  danger faction requiredItem
    ```
-   `x`/`y` are 0–100, positioned against the map's `viewBox` (currently
-   `0 0 1000 700` for every map — a wide landscape canvas). Overlay your
-   reference image and adjust `x`/`y` per node until markers line up with
-   the real locations.
-3. `danger` (0–10) is a subjective PMC/boss contact risk rating — tune it
+   `x`/`y` are 0–100 against the map's `viewBox` (`0 0 1000 700` for every
+   map). The real SVG art now renders underneath at partial opacity as a
+   visual reference — eyeball your node against it and nudge `x`/`y` until
+   it lines up. (Real spawn/extract positions from the live API, once it's
+   back, will do this automatically for anything the API covers; this stays
+   relevant for the landmark nodes it doesn't.)
+2. `danger` (0–10) is a subjective PMC/boss contact risk rating — tune it
    from your own raid experience or community heatmaps.
-4. `requiredItem` should be a short human-readable key/item name (e.g.
+3. `requiredItem` should be a short human-readable key/item name (e.g.
    `'ZB-013 Key'`) or `null`. Any node with a non-null `requiredItem` shows
    a 🔒 badge and gets excluded when "avoid key-locked" is on.
-5. Edges (`e('nodeA', 'nodeB', dist)`) define what's actually pathable and
+4. Edges (`e('nodeA', 'nodeB', dist)`) define what's actually pathable and
    how far apart nodes are — the graph is intentionally sparse, not a full
    mesh, so an edge should represent a real, roughly-walkable line of
    travel. `dist` is a relative unit, not meters — keep it internally
    consistent per map rather than trying to match real distances exactly.
 
-### Adding quest waypoints
+### The bundled fallback's `mapNodeHint`
 
-To make a quest objective show up as a plotted, numbered stop on the map
-(not just an item in the sidebar), give its objective a `mapNodeHint` equal
-to a node `id` on that map. See `src/data/questsFallback.js` for examples.
-This only affects the bundled fallback quests today — extending it to
-live-fetched quests would mean building your own
-`objectiveId -> nodeId` lookup table, since tarkov.dev doesn't provide one.
+`src/data/questsFallback.js` quests still carry a hand-picked `mapNodeHint`
+(a node `id` on the map) as a belt-and-suspenders waypoint source — used
+only when a quest has no real `realPosition` (i.e., always, for the bundled
+fallback set, and for any live quest whose objective genuinely has no fixed
+location, like "reach player level 20"). You don't need to maintain this for
+new quests; it's a fallback for exactly the offline case this app shipped
+in.
 
 ## Route planning
 
@@ -109,9 +159,10 @@ live-fetched quests would mean building your own
   active map's graph. Edge cost blends raw distance with the danger rating
   of the node being entered; the **Shortest ↔ Safest** slider (0–1) shifts
   the blend from pure distance to danger-weighted.
-- **Multi-stop routing**: any selected quest objective with a `mapNodeHint`
-  on the current map becomes a waypoint. The planner chains
-  spawn → objective 1 → objective 2 → … → extract, running A* leg-by-leg.
+- **Multi-stop routing**: any selected quest objective that resolves to a
+  waypoint (real API position, or the fallback `mapNodeHint`) on the current
+  map gets chained in: spawn → objective 1 → objective 2 → … → extract,
+  running A* leg-by-leg.
 - **Avoid key-locked** removes every node with a `requiredItem` from the
   graph entirely (not just extracts — any landmark gated behind a key too),
   so a route never crosses or ends at a locked point. If that makes a leg
@@ -130,22 +181,28 @@ leaves your machine — there's no backend and no analytics.
 
 ```
 src/
-  api/tarkovApi.js       live GraphQL fetch + cache + fallback
-  data/maps/*.js         per-map hand-built node graphs (edit these to refine coordinates)
-  data/questsFallback.js offline quest snapshot used when the API is unreachable
-  utils/astar.js         pathfinding
+  api/tarkovApi.js         live GraphQL fetch (quests + real map/spawn/extract/objective positions) + cache + fallback
+  data/maps/*.js           per-map hand-built node graphs — walkable edges, danger, key locks
+  data/mapCalibration.js   one-time-pulled per-map coordinate transform (world -> percent)
+  data/questsFallback.js   offline quest snapshot used when the API is unreachable
+  utils/astar.js           pathfinding
+  utils/worldToPercent.js  world coordinate -> map percent transform
   context/AppStateContext.jsx   localStorage-backed app state
-  pages/                 Main Menu, Mode/Map/Quest select, Route Planner
-  components/MapView.jsx SVG node graph + route rendering
-public/maps/             drop real map background images here (see "Refining coordinates")
+  pages/                   Main Menu, Mode/Map/Quest select, Route Planner
+  components/MapView.jsx   SVG node graph + route rendering
+public/maps/*.svg          real map art, pulled one-time from assets.tarkov.dev (CC BY-NC-SA 4.0)
+scripts/sync-tarkov-data.mjs   run with `npm run sync-tarkov-data` to check the live API from a terminal
 ```
 
 ## Known limitations
 
-- Node graphs are a starting skeleton, not survey-accurate — see "Map data"
-  above.
-- Live quest objectives aren't auto-pinned to map locations (no shared ID
-  space in the public API); the bundled fallback quests are, as a worked
-  example.
+- Walkable connectivity (which nodes can reach which) is still hand-built
+  and approximate — the API has no concept of a walkable path, only points.
+- Real coordinates are implemented and offline-validated against the
+  schema, but unverified end-to-end against a live response — see "Real
+  coordinates" above for exactly what that means and how to tell (`GPS:`
+  status in the route planner's top bar).
 - Only 10 base maps are modeled; map variants (e.g. Factory day/night) share
   the same graph.
+- Real map art is licensed CC BY-NC-SA 4.0 (non-commercial) — fine for this
+  personal tool, don't repurpose it commercially.

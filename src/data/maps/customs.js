@@ -4,7 +4,7 @@ export default {
   id: 'customs',
   name: 'Customs',
   viewBox: '0 0 1000 700',
-  image: '/maps/customs.jpg',
+  image: '/maps/customs.svg',
   nodes: [
     n('cust_spawn_trailer', 'Trailer Park Spawn', 'spawn', 68, 78, 2, 'pmc'),
     n('cust_spawn_dorms', 'Dorms Spawn', 'spawn', 22, 30, 3, 'pmc'),

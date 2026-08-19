@@ -4,7 +4,7 @@ export default {
   id: 'woods',
   name: 'Woods',
   viewBox: '0 0 1000 700',
-  image: '/maps/woods.jpg',
+  image: '/maps/woods.svg',
   nodes: [
     n('woo_spawn_south', 'South Spawn', 'spawn', 40, 85, 2, 'pmc'),
     n('woo_spawn_north', 'North Spawn', 'spawn', 55, 10, 2, 'pmc'),

@@ -4,7 +4,7 @@ export default {
   id: 'interchange',
   name: 'Interchange',
   viewBox: '0 0 1000 700',
-  image: '/maps/interchange.jpg',
+  image: '/maps/interchange.svg',
   nodes: [
     n('int_spawn_east', 'East Wing Spawn', 'spawn', 80, 40, 2, 'pmc'),
     n('int_spawn_west', 'West Wing Spawn', 'spawn', 15, 55, 2, 'pmc'),
